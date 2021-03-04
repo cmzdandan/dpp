@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="namespace" value="rule"/>
+    <property name="log.directory" value="/apps/logs/log_receiver/${namespace}"/>
+    <property name="log.context.name" value="application"/>
+    <property name="log.charset" value="UTF-8"/>
+    <property name="log.maxFileSize" value="${rule.func.maxFileSize:-1GB}"/>
+    <property name="log.maxIndex" value="${rule.func.maxIndex:-10}"/>
+    <property name="log.pattern" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] >>> %msg%n"/>
+    <property name="log.error.log.level" value="WARN"/>
+    <property name="log.async.queue.size" value="40960"/>
+
+    <contextName>${log.context.name}</contextName>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder charset="${log.charset}">
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.directory}/${log.context.name}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${log.directory}/${log.context.name}-%i.log</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>${log.maxIndex}</maxIndex>
+        </rollingPolicy>
+        <append>true</append>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>${log.maxFileSize}</maxFileSize>
+        </triggeringPolicy>
+        <encoder charset="${log.charset}">
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.directory}/${log.context.name}-error.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${log.error.log.level}</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${log.directory}/${log.context.name}-error-%i.log</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>${log.maxIndex}</maxIndex>
+        </rollingPolicy>
+        <append>true</append>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>${log.maxFileSize}</maxFileSize>
+        </triggeringPolicy>
+        <encoder charset="${log.charset}">
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Async log, for FILE only -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <neverBlock>true</neverBlock>
+        <queueSize>${log.async.queue.size}</queueSize>
+        <appender-ref ref="FILE"/>
+    </appender>
+    <!-- Async log, for ERROR only -->
+    <appender name="ASYNC_ERRORLOG" class="ch.qos.logback.classic.AsyncAppender">
+        <neverBlock>true</neverBlock>
+        <queueSize>${log.async.queue.size}</queueSize>
+        <appender-ref ref="ERROR"/>
+    </appender>
+
+    <!-- 单独控制com.cmz.dpp的日志输出，使其异步输出日志-->
+    <logger name="com.cmz.dpp" additivity="false">
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ASYNC_ERRORLOG"/>
+    </logger>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ASYNC_ERRORLOG"/>
+    </root>
+
+</configuration>

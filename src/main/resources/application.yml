@@ -1,0 +1,41 @@
+# 指定配置文件为development
+spring:
+  profiles:
+    active: development
+
+  # 配置数据库连接池
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      pool-name: HikariCP
+      auto-commit: true
+      minimum-idle: 1
+      maximum-pool-size: 10
+      idle-timeout: 3000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+
+# 配置Mybatis
+mybatis:
+  type-aliases-package: com.cmz.dpp.model
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 配置通用Mapper
+mapper:
+  mappers: tk.mybatis.mapper.common.Mapper
+  identity: MYSQL
+  style: camelhumpAndUppercase
+  before: true
+  not-empty: false
+  safe-delete: true
+  safe-update: true
+  check-example-entity-class: true
+
+# PageHelper
+pagehelper:
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
